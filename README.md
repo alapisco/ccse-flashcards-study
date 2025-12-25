@@ -1,6 +1,6 @@
-# CCSE 2026 Flashcards App
+# CCSE 2-26 Flashcards App
 
-A mobile-first web application for studying CCSE 2026 exam questions using Spaced Repetition (SRS). Built with React, TypeScript, and Vite.
+A mobile-first web application for studying CCSE 2-26 exam questions using Spaced Repetition (SRS). Built with React, TypeScript, and Vite.
 
 The question bank is loaded at runtime from the repo-root `questions.json`.
 
@@ -70,7 +70,14 @@ Builds the app for deployment to static hosting (Vercel, Netlify, GitHub Pages).
 npm run build
 ```
 
-### 5) Linting & Formatting
+### 5) Previewing the Production Build
+Serves the production build locally.
+
+```bash
+npm run preview
+```
+
+### 6) Linting
 Checks the code for syntax errors and style issues.
 
 ```bash
@@ -89,28 +96,31 @@ npm run lint
 
 - The app loads [questions.json](questions.json) (repo root) at runtime.
 - Canonical internal format + validation rules are documented in `DESIGN.md`.
+- Note: `src/data/dataset.ts` is intentionally unused (historical artifact).
 
 ### Expected `questions.json` shape
 
-The loader accepts either Spanish or English-ish keys:
+Canonical (recommended) format:
 
 ```json
 {
-	"tasks": [{"id": 1, "name": "..."}],
+	"datasetVersion": "ccse-2-26",
+	"tareas": [{"id": 1, "name": "..."}],
 	"questions": [{
 		"id": "1001",
 		"question": "España es…",
 		"options": [{"letter": "a", "text": "..."}],
 		"answer": "a",
-		"taskId": 1,
+		"tareaId": 1,
 		"type": "mcq"
 	}]
 }
 ```
 
 Also supported:
-- `tareas` instead of `tasks`
-- `tareaId` instead of `taskId`
+- `datasetVersion` can be omitted (the app will assume `ccse-2-26`)
+- `tasks` instead of `tareas`
+- `taskId` instead of `tareaId`
 - `type` can be omitted (it will be inferred: 2 options → `tf`, else `mcq`)
 
 ### Converting an existing dump
@@ -122,6 +132,11 @@ python3 scripts/rename_dataset.py path/to/input.json path/to/output.json
 ```
 
 Then replace the repo-root [questions.json](questions.json) with the generated output.
+
+## 🔐 Environment files
+
+- This project does not require env vars by default.
+- If you add any, prefer committing a `.env.example` and keep real `.env*` files local (they are ignored by git).
 
 ## 📱 Mobile-First Tips
 This app is designed to look like a native app.
