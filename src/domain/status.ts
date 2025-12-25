@@ -4,9 +4,15 @@ import { isWeak } from './weak'
 
 export type QuestionStatus = 'new' | 'due' | 'weak' | 'mastered' | 'learning'
 
-export function isDue(progressNextReviewAt: string | undefined, today: string): boolean {
+export function isDue(progressNextReviewAt: string | undefined, today: string, lastSeenAt?: string): boolean {
   if (!progressNextReviewAt) return false
-  return progressNextReviewAt <= today
+
+  // We store review dates as YYYY-MM-DD (local date) even though FSRS schedules
+  // at a timestamp granularity. This helper prevents “same day” immediate repeats:
+  // - If an item is scheduled for today but was already seen today, treat it as not due.
+  if (progressNextReviewAt < today) return true
+  if (progressNextReviewAt > today) return false
+  return lastSeenAt !== today
 }
 
 export function isMastered(progress: ProgressById[string] | undefined): boolean {
@@ -35,7 +41,7 @@ export function getQuestionStatus(
   void dataset
   const p = progressById[question.id]
   if (!p) return 'new'
-  if (isDue(p.nextReviewAt, today)) return 'due'
+  if (isDue(p.nextReviewAt, today, p.lastSeenAt)) return 'due'
   if (isWeak(p, today)) return 'weak'
   if (isMastered(p)) return 'mastered'
   return 'learning'

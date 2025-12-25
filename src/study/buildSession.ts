@@ -49,7 +49,7 @@ export function buildStudySession(args: {
   const duePool = dataset.questions.filter((q) => {
     const p = progressById[q.id]
     if (!p) return false
-    return (!onlyThisTarea || inScope(q)) && isDue(p.nextReviewAt, today)
+    return (!onlyThisTarea || inScope(q)) && isDue(p.nextReviewAt, today, p.lastSeenAt)
   })
 
   const weakPool = dataset.questions.filter((q) => {
@@ -57,7 +57,7 @@ export function buildStudySession(args: {
     if (onlyThisTarea && !inScope(q)) return false
     const p = progressById[q.id]
     if (!p) return false
-    if (isDue(p.nextReviewAt, today)) return false
+    if (isDue(p.nextReviewAt, today, p.lastSeenAt)) return false
     return isWeak(p, today)
   })
 
@@ -101,7 +101,7 @@ export function buildStudySession(args: {
       finalNew += 1
       continue
     }
-    if (isDue(p.nextReviewAt, today)) {
+    if (isDue(p.nextReviewAt, today, p.lastSeenAt)) {
       finalDue += 1
       continue
     }

@@ -29,7 +29,7 @@ function weightForQuestion(q: Question, progressById: ProgressById, today: strin
   const p = progressById[q.id]
   if (!p) return 1
   let w = 1
-  if (isDue(p.nextReviewAt, today)) w += 4
+  if (isDue(p.nextReviewAt, today, p.lastSeenAt)) w += 4
   if (isWeak(p, today)) w += 3
   // Low mastery heuristic: shorter scheduled days => higher weight
   const scheduled = p.card.scheduled_days

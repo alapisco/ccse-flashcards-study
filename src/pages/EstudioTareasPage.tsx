@@ -71,7 +71,7 @@ export function EstudioTareasPage() {
         const seen = tareaQuestions.filter((q) => Boolean(progressById[q.id])).length
         const due = tareaQuestions.filter((q) => {
           const p = progressById[q.id]
-          return p ? isDue(p.nextReviewAt, today) : false
+          return p ? isDue(p.nextReviewAt, today, p.lastSeenAt) : false
         }).length
         const weak = tareaQuestions.filter((q) => {
           const p = progressById[q.id]

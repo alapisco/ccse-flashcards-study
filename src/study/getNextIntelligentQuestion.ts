@@ -23,10 +23,8 @@ export function getNextIntelligentQuestion(args: {
     constraint = { kind: 'all' },
     recentIds = [],
     priorityIds = [],
-    avoidRecentCount = 10,
+    avoidRecentCount: avoidRecentCountArg,
   } = args
-
-  const recentSet = new Set(recentIds.slice(-avoidRecentCount))
 
   const inScope = (q: Question) => {
     if (constraint.kind === 'all') return true
@@ -35,6 +33,18 @@ export function getNextIntelligentQuestion(args: {
 
   const questions = dataset.questions.filter(inScope)
   const byId = new Map(questions.map((q) => [q.id, q] as const))
+
+  // Dynamic “avoid recent” window:
+  // - Smaller scopes (e.g., a single tarea) should avoid fewer recent items to prevent starvation.
+  // - Larger scopes should avoid more to reduce perceived repetition.
+  // Rule of thumb: ~40% of the scope, clamped to [4..20], and never equal to the full scope.
+  const scopeCount = questions.length
+  const dynamicBase = Math.round(scopeCount * 0.4)
+  const dynamicClamped = Math.max(4, Math.min(20, dynamicBase))
+  const dynamicSafe = Math.min(dynamicClamped, Math.max(0, scopeCount - 1))
+  const avoidRecentCount = avoidRecentCountArg ?? dynamicSafe
+
+  const recentSet = new Set(recentIds.slice(-avoidRecentCount))
 
   const pickAny = (candidates: Question[]): string | null => {
     if (candidates.length === 0) return null
@@ -75,7 +85,7 @@ export function getNextIntelligentQuestion(args: {
       continue
     }
 
-    if (isDue(p.nextReviewAt, today)) {
+    if (isDue(p.nextReviewAt, today, p.lastSeenAt)) {
       due.push(q)
       continue
     }

@@ -15,7 +15,8 @@ function progressWithDue(today: string): ProgressById[string] {
     correctCount: 1,
     wrongCount: 0,
     leechScore: 0,
-    lastSeenAt: today,
+    // Not seen today yet; should be counted as due.
+    lastSeenAt: undefined,
   }
 }
 

@@ -61,7 +61,7 @@ export function InicioPage() {
 
   const dueCount = dataset.questions.filter((q) => {
     const p = progressById[q.id]
-    return p ? isDue(p.nextReviewAt, today) : false
+    return p ? isDue(p.nextReviewAt, today, p.lastSeenAt) : false
   }).length
 
   const weakCount = dataset.questions.filter((q) => {
