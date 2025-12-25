@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getNextIntelligentQuestion } from '../study/getNextIntelligentQuestion'
 import { makeDatasetWithMinimumSimulacro } from './fixtures/makeDataset'
 import { createEmptyCard } from 'ts-fsrs'
+import type { ProgressById } from '../domain/progress'
 
 describe('getNextIntelligentQuestion (dynamic avoidRecentCount)', () => {
   it('uses a larger avoidRecentCount for all-scope than for a single tarea', () => {
@@ -69,7 +70,7 @@ describe('getNextIntelligentQuestion (dynamic avoidRecentCount)', () => {
         lastSeenAt: today,
         lastResult: 'knew',
       },
-    }
+    } satisfies ProgressById
 
     const next = getNextIntelligentQuestion({
       dataset,
