@@ -152,7 +152,15 @@ The intelligent study flow chooses the next question using these signals (in ord
 - **Priority first**: if you start intelligent study with `priorityIds` (e.g., to review mistakes), those are served first.
 - **Buckets**: otherwise, it prefers questions in this order: **due → weak → new → learning**.
 - **Repeat avoidance (recent window)**: within each bucket, it tries to avoid questions you just saw by excluding a “recent” window of IDs.
-	- The window size is **dynamic** based on the number of in-scope questions (all vs a single tarea): roughly **40% of the scope**, clamped to **[4..20]**, and never equal to the full scope.
+	- The window size is **dynamic** based on the number of in-scope questions (all vs a single tarea): roughly **50% of the scope**, clamped to **[6..25]**, and never equal to the full scope.
 	- If needed (tiny scope), it can fall back to allow repeats rather than getting stuck.
+- **Extra cooldown after “Lo sabía”**: cards marked as **knew today** are strongly deprioritized and only shown again as a last resort (tiny scope).
 - **Same-day repeat avoidance (FSRS date granularity)**: scheduling is computed by FSRS (`ts-fsrs`), but the app stores review times as **local dates** (`YYYY-MM-DD`).
 	- To reduce “I just answered this and it came back immediately” reports, items scheduled for **today** are treated as **not due** if they were **already seen today**.
+
+### What counts as “weak”
+
+The “weak” label is intentionally conservative (to help you fix mistakes), but it is tuned to avoid excessive repetition:
+
+- Marked weak if: manual flag, high wrong count, high leech score, low confidence (“guessed”), or a recent wrong.
+- Cleared early if the last result was **knew** (unless it’s clearly a leech / many wrongs).

@@ -37,10 +37,10 @@ export function getNextIntelligentQuestion(args: {
   // Dynamic “avoid recent” window:
   // - Smaller scopes (e.g., a single tarea) should avoid fewer recent items to prevent starvation.
   // - Larger scopes should avoid more to reduce perceived repetition.
-  // Rule of thumb: ~40% of the scope, clamped to [4..20], and never equal to the full scope.
+  // Rule of thumb: ~50% of the scope, clamped to [6..25], and never equal to the full scope.
   const scopeCount = questions.length
-  const dynamicBase = Math.round(scopeCount * 0.4)
-  const dynamicClamped = Math.max(4, Math.min(20, dynamicBase))
+  const dynamicBase = Math.round(scopeCount * 0.5)
+  const dynamicClamped = Math.max(6, Math.min(25, dynamicBase))
   const dynamicSafe = Math.min(dynamicClamped, Math.max(0, scopeCount - 1))
   const avoidRecentCount = avoidRecentCountArg ?? dynamicSafe
 
@@ -62,6 +62,11 @@ export function getNextIntelligentQuestion(args: {
     return filtered[0]!.id
   }
 
+  const wasKnewToday = (q: Question) => {
+    const p = progressById[q.id]
+    return Boolean(p && p.lastSeenAt === today && p.lastResult === 'knew')
+  }
+
   // Priority IDs (e.g., review wrong answers first).
   if (priorityIds.length > 0) {
     const prioritized: Question[] = []
@@ -75,8 +80,10 @@ export function getNextIntelligentQuestion(args: {
 
   const due: Question[] = []
   const weak: Question[] = []
+  const weakKnewToday: Question[] = []
   const newly: Question[] = []
   const learning: Question[] = []
+  const learningKnewToday: Question[] = []
 
   for (const q of questions) {
     const p = progressById[q.id]
@@ -91,11 +98,15 @@ export function getNextIntelligentQuestion(args: {
     }
 
     if (isWeak(p, today)) {
-      weak.push(q)
+      // If the user just marked this as "knew" today, deprioritize it strongly.
+      // It can still be shown as a last resort (tiny scope).
+      if (wasKnewToday(q)) weakKnewToday.push(q)
+      else weak.push(q)
       continue
     }
 
-    learning.push(q)
+    if (wasKnewToday(q)) learningKnewToday.push(q)
+    else learning.push(q)
   }
 
   // Never get stuck repeating the same question: if a bucket only contains “recent” items,
@@ -109,5 +120,13 @@ export function getNextIntelligentQuestion(args: {
   if (preferred) return preferred
 
   // Fallback (e.g., tiny dataset/scope): allow repeats.
-  return pickAny(due) ?? pickAny(weak) ?? pickAny(newly) ?? pickAny(learning) ?? null
+  return (
+    pickAny(due) ??
+    pickAny(weak) ??
+    pickAny(newly) ??
+    pickAny(learning) ??
+    pickAny(weakKnewToday) ??
+    pickAny(learningKnewToday) ??
+    null
+  )
 }
