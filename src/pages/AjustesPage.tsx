@@ -37,7 +37,7 @@ export function AjustesPage() {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-[var(--surface)] p-4">
-        <div className="text-sm font-semibold">Progreso</div>
+        <div className="text-sm font-semibold">Mis datos</div>
         <div className="mt-1 text-xs text-[var(--muted)]">Exporta, importa o reinicia tu progreso.</div>
 
         <div className="mt-4 space-y-3">
@@ -72,11 +72,11 @@ export function AjustesPage() {
             }}
           />
 
-          <div className="rounded-2xl bg-white p-4">
-            <div className="text-sm font-semibold">Reiniciar</div>
-            <div className="mt-1 text-xs text-[var(--muted)]">Borra tu progreso y sesiones en el dispositivo.</div>
+          <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
+            <div className="text-sm font-semibold text-[var(--ic-accent)]">Reiniciar</div>
+            <div className="mt-1 text-xs text-[var(--muted)]">Acción destructiva: borra tu progreso y sesiones en este dispositivo.</div>
             <div className="mt-3">
-              <Button variant="ghost" onClick={() => setConfirmReset(true)}>
+              <Button variant="danger" onClick={() => setConfirmReset(true)}>
                 Reiniciar progreso
               </Button>
             </div>
@@ -92,6 +92,7 @@ export function AjustesPage() {
         description="Se borrarán tus preguntas vistas, repasos, sesiones y resultados de simulacros en este dispositivo."
         confirmLabel="Reiniciar"
         cancelLabel="Cancelar"
+        confirmVariant="danger"
         onCancel={() => setConfirmReset(false)}
         onConfirm={() => {
           setConfirmReset(false)

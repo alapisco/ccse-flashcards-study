@@ -8,6 +8,7 @@ export function ConfirmSheet(props: {
   description: string
   confirmLabel: string
   cancelLabel?: string
+  confirmVariant?: Parameters<typeof Button>[0]['variant']
   onConfirm: () => void
   onCancel: () => void
 }) {
@@ -43,7 +44,7 @@ export function ConfirmSheet(props: {
             <Button variant="secondary" className="w-full" onClick={props.onCancel}>
               {props.cancelLabel ?? 'Cancelar'}
             </Button>
-            <Button variant="primary" className="w-full" onClick={props.onConfirm}>
+            <Button variant={props.confirmVariant ?? 'primary'} className="w-full" onClick={props.onConfirm}>
               {props.confirmLabel}
             </Button>
           </div>

@@ -29,7 +29,7 @@ export function AyudaPage() {
           </div>
           <div>
             <div className="font-semibold text-[var(--text)]">¿Cómo exporto mi progreso?</div>
-            <div>En Más → Ajustes puedes exportar e importar tu progreso.</div>
+            <div>En Mis datos puedes exportar e importar tu progreso.</div>
           </div>
         </div>
       </div>

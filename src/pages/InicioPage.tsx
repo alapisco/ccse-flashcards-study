@@ -75,6 +75,8 @@ export function InicioPage() {
 
   const level = computeLevel({ dataset, progressById, today })
 
+  const appVersion = __APP_VERSION__
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-[var(--surface)] p-4">
@@ -189,6 +191,8 @@ export function InicioPage() {
           navigate('/estudio/sesion')
         }}
       />
+
+      <div className="pb-2 text-center text-[10px] text-[var(--muted)]">v{appVersion}</div>
     </div>
   )
 }

@@ -27,7 +27,7 @@ export function AppShell() {
               <NavItem to="/estudio" label="Estudio" icon={<BookOpen className="h-5 w-5" />} />
               <NavItem to="/practicar" label="Preguntas" icon={<Target className="h-5 w-5" />} />
               <NavItem to="/simulacro" label="Simulacro" icon={<ClipboardList className="h-5 w-5" />} />
-              <NavItem to="/ajustes" label="Ajustes" icon={<Settings className="h-5 w-5" />} />
+              <NavItem to="/ajustes" label="Mis datos" icon={<Settings className="h-5 w-5" />} />
             </div>
           </nav>
         ) : null}

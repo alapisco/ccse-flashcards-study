@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from 'react'
 import { cn } from './cn'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
 }
 
 export function Button({ className, variant = 'secondary', ...props }: Props) {
@@ -13,6 +13,7 @@ export function Button({ className, variant = 'secondary', ...props }: Props) {
         variant === 'primary' && 'bg-[var(--ic-accent)] text-white',
         variant === 'secondary' && 'bg-[var(--surface)] text-[var(--text)]',
         variant === 'ghost' && 'bg-transparent text-[var(--text)]',
+        variant === 'danger' && 'bg-transparent text-[var(--ic-accent)]',
         className,
       )}
       {...props}
