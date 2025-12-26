@@ -75,6 +75,18 @@ export function EstudioPage() {
       </div>
 
       <div className="rounded-2xl bg-[var(--surface)] p-4">
+        <div className="text-sm font-semibold">Apuntes CCSE</div>
+        <div className="mt-2 text-xs text-[var(--muted)]">
+          Resumen por tareas: solo lo imprescindible para contestar las preguntas.
+        </div>
+        <div className="mt-4">
+          <Button variant="primary" onClick={() => navigate('/apuntes')}>
+            Abrir apuntes
+          </Button>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-[var(--surface)] p-4">
         <div className="text-sm font-semibold">Estudio por tarea</div>
         <div className="mt-2 text-xs text-[var(--muted)]">Elige una tarea y refuerza tus puntos débiles dentro de ella.</div>
         <div className="mt-4">

@@ -5,8 +5,10 @@ import { AppShell } from './app/AppShell'
 import { DatasetProvider } from './data/DatasetProvider'
 import { useDataset } from './data/datasetContext'
 import { AjustesPage } from './pages/AjustesPage'
+import { ApuntesPage } from './pages/ApuntesPage'
 import { BancoDetailPage } from './pages/BancoDetailPage'
 import { BancoPage } from './pages/BancoPage'
+import { AyudaPage } from './pages/AyudaPage'
 import { EstudioPage } from './pages/EstudioPage'
 import { EstudioSesionPage } from './pages/EstudioSesionPage'
 import { EstudioTareasPage } from './pages/EstudioTareasPage'
@@ -67,6 +69,8 @@ function AppRoutes() {
           <Route path="/practicar/banco/:id" element={<BancoDetailPage />} />
           <Route path="/ajustes" element={<AjustesPage />} />
           <Route path="/estadisticas" element={<EstadisticasPage />} />
+          <Route path="/ayuda" element={<AyudaPage />} />
+          <Route path="/apuntes" element={<ApuntesPage />} />
 
           {/* Legacy */}
           <Route path="/estudiar" element={<Navigate to="/estudio" replace />} />
@@ -86,7 +90,7 @@ function AppRoutes() {
           <Route path="/mas" element={<Navigate to="/ajustes" replace />} />
           <Route path="/mas/ajustes" element={<Navigate to="/ajustes" replace />} />
           <Route path="/mas/estadisticas" element={<Navigate to="/ajustes" replace />} />
-          <Route path="/mas/ayuda" element={<Navigate to="/ajustes" replace />} />
+          <Route path="/mas/ayuda" element={<Navigate to="/ayuda" replace />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

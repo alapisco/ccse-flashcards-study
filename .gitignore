@@ -47,3 +47,5 @@ test-results/
 *.njsproj
 *.sln
 *.sw?
+
+bok.md

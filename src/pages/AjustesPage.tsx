@@ -16,9 +16,16 @@ export function AjustesPage() {
     const payload = exportPayload()
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
+
+    const ts = new Date()
+      .toISOString()
+      .replace('T', '_')
+      .replace('Z', 'Z')
+      .replace(/[:.]/g, '-')
+
     const a = document.createElement('a')
     a.href = url
-    a.download = `ccse-flashcards-export-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `ccse-flashcards-export-${ts}.json`
     a.click()
     URL.revokeObjectURL(url)
   }

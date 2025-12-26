@@ -1,9 +1,22 @@
+import { Link } from 'react-router-dom'
+
 export function AyudaPage() {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-[var(--surface)] p-4">
         <div className="text-sm font-semibold">Ayuda</div>
         <div className="mt-2 space-y-3 text-sm text-[var(--muted)]">
+          <div>
+            <div className="font-semibold text-[var(--text)]">Apuntes CCSE</div>
+            <div>
+              Resumen por tareas para consultar teoría.
+              <span className="ml-2">
+                <Link className="text-[var(--ic-accent)] underline" to="/apuntes">
+                  Abrir apuntes
+                </Link>
+              </span>
+            </div>
+          </div>
           <div>
             <div className="font-semibold text-[var(--text)]">¿Qué es “estudio inteligente”?</div>
             <div>Un modo que te muestra automáticamente lo más importante: para repasar, para reforzar y nuevas.</div>
