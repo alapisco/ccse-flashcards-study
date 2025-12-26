@@ -36,9 +36,16 @@ describe('UI: banco', () => {
 
     expect(screen.getByText(/resultados/)).toBeInTheDocument()
 
-    await user.type(screen.getByPlaceholderText('Buscar por ID o texto…'), '1001')
+    const input = screen.getByPlaceholderText('Buscar por ID o texto…')
+
+    await user.type(input, '1001')
 
     // should show an item with 1001
     expect(await screen.findByText(/1001/)).toBeInTheDocument()
+
+    // can also search within answer options (not only question text)
+    await user.clear(input)
+    await user.type(input, 'Verdadero')
+    expect(await screen.findByText(/2001/)).toBeInTheDocument()
   })
 })

@@ -32,6 +32,8 @@ export function BancoPage() {
   const tareaLabel = tarea === 'all' ? 'Todas las tareas' : labelFor(tarea)
   const statusLabel = status === 'all' ? 'Todos los estados' : labelForStatus(status)
 
+  const stripOptionPrefix = (text: string) => text.replace(/^\s*[a-d]\s*[\)\.:]\s*/i, '').trim()
+
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     const questions = dataset?.questions ?? []
@@ -41,7 +43,8 @@ export function BancoPage() {
 
         if (q) {
           const matchesId = item.id.toLowerCase().includes(q)
-          const matchesText = item.question.toLowerCase().includes(q)
+          const optionsText = item.options.map((o) => stripOptionPrefix(o.text)).join(' ')
+          const matchesText = `${item.question} ${optionsText}`.toLowerCase().includes(q)
           if (!matchesId && !matchesText) return false
         }
 
