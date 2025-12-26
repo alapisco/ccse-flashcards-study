@@ -37,7 +37,7 @@ export function AjustesPage() {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-[var(--surface)] p-4">
-        <div className="text-sm font-semibold">Mis datos</div>
+        <div className="text-sm font-semibold">Mi progreso</div>
         <div className="mt-1 text-xs text-[var(--muted)]">Exporta, importa o reinicia tu progreso.</div>
 
         <div className="mt-4 space-y-3">

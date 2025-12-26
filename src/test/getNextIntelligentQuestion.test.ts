@@ -68,7 +68,7 @@ describe('getNextIntelligentQuestion (dynamic avoidRecentCount)', () => {
         wrongCount: 0,
         leechScore: 0,
         lastSeenAt: today,
-        lastResult: 'knew',
+        lastResult: 'knew' as const,
       },
     } satisfies ProgressById
 
@@ -82,5 +82,24 @@ describe('getNextIntelligentQuestion (dynamic avoidRecentCount)', () => {
 
     // Should pick another question from tarea 1 instead of repeating 1001.
     expect(next).toBe('1002')
+  })
+
+  it('when all candidates are recent, picks the least-recent one (prevents repeating the same id)', () => {
+    const dataset = makeDatasetWithMinimumSimulacro()
+    const today = '2025-12-25'
+
+    const next = getNextIntelligentQuestion({
+      dataset,
+      progressById: {},
+      today,
+      constraint: { kind: 'tarea', tareaId: 1 },
+      // Force the "avoid recent" set to include all candidates.
+      avoidRecentCount: 10,
+      // recentIds are tracked oldest -> newest.
+      recentIds: ['1005', '1004', '1003', '1002', '1001', '1010', '1009', '1008', '1007', '1006'],
+    })
+
+    // Oldest in recentIds should be selected (not lexicographically smallest).
+    expect(next).toBe('1005')
   })
 })

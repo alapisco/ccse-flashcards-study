@@ -45,21 +45,65 @@ export function getNextIntelligentQuestion(args: {
   const avoidRecentCount = avoidRecentCountArg ?? dynamicSafe
 
   const recentSet = new Set(recentIds.slice(-avoidRecentCount))
+  const recencyIndex = new Map<string, number>()
+  for (let i = 0; i < recentIds.length; i += 1) {
+    recencyIndex.set(recentIds[i]!, i)
+  }
+
+  const sortCandidates = (candidates: Question[]) => {
+    const base = [...candidates]
+
+    // When starting a new intelligent session (recentIds empty), avoid always picking the lowest-id
+    // learning question over and over. Prefer the least-recently-seen question instead.
+    if (recentIds.length === 0) {
+      base.sort((a, b) => {
+        const aSeen = progressById[a.id]?.lastSeenAt
+        const bSeen = progressById[b.id]?.lastSeenAt
+
+        if (aSeen && bSeen && aSeen !== bSeen) return aSeen.localeCompare(bSeen)
+        if (!aSeen && bSeen) return -1
+        if (aSeen && !bSeen) return 1
+        return a.id.localeCompare(b.id)
+      })
+      return base
+    }
+
+    base.sort((a, b) => a.id.localeCompare(b.id))
+    return base
+  }
 
   const pickAny = (candidates: Question[]): string | null => {
     if (candidates.length === 0) return null
 
-    const base = [...candidates]
-    base.sort((a, b) => a.id.localeCompare(b.id))
-    return base[0]!.id
+    return sortCandidates(candidates)[0]!.id
   }
 
   const pickPreferNonRecent = (candidates: Question[]): string | null => {
     if (candidates.length === 0) return null
     const filtered = candidates.filter((q) => !recentSet.has(q.id))
     if (filtered.length === 0) return null
-    filtered.sort((a, b) => a.id.localeCompare(b.id))
-    return filtered[0]!.id
+    return sortCandidates(filtered)[0]!.id
+  }
+
+  // If all candidates are "recent", prefer the one that was seen least recently.
+  // This prevents the fallback path from repeatedly selecting the same lowest-id question.
+  const pickLeastRecent = (candidates: Question[]): string | null => {
+    if (candidates.length === 0) return null
+
+    let best: Question | null = null
+    let bestIndex = Number.POSITIVE_INFINITY
+
+    for (const q of candidates) {
+      const idx = recencyIndex.get(q.id)
+      if (idx === undefined) continue
+      if (idx < bestIndex) {
+        best = q
+        bestIndex = idx
+      }
+    }
+
+    if (best) return best.id
+    return pickAny(candidates)
   }
 
   const wasKnewToday = (q: Question) => {
@@ -121,12 +165,12 @@ export function getNextIntelligentQuestion(args: {
 
   // Fallback (e.g., tiny dataset/scope): allow repeats.
   return (
-    pickAny(due) ??
-    pickAny(weak) ??
-    pickAny(newly) ??
-    pickAny(learning) ??
-    pickAny(weakKnewToday) ??
-    pickAny(learningKnewToday) ??
+    pickLeastRecent(due) ??
+    pickLeastRecent(weak) ??
+    pickLeastRecent(newly) ??
+    pickLeastRecent(learning) ??
+    pickLeastRecent(weakKnewToday) ??
+    pickLeastRecent(learningKnewToday) ??
     null
   )
 }

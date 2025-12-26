@@ -1,14 +1,8 @@
 import type { Dataset } from './types'
 import type { ProgressById } from './progress'
-import { isMastered } from './status'
+import { getQuestionStatus } from './status'
 
 export type UserLevel = 'Principiante' | 'Intermedio' | 'Avanzado' | 'Listo'
-
-function addDays(day: string, days: number): string {
-  const d = new Date(day + 'T00:00:00')
-  d.setDate(d.getDate() + days)
-  return d.toISOString().slice(0, 10)
-}
 
 export function computeMasteredCount(args: {
   dataset: Dataset
@@ -16,28 +10,10 @@ export function computeMasteredCount(args: {
   today: string
 }): number {
   const { dataset, progressById, today } = args
-  const threshold = addDays(today, 7)
 
   let mastered = 0
   for (const q of dataset.questions) {
-    const p = progressById[q.id]
-    if (!p) continue
-
-    // Keep the “bien aprendidas” count consistent with status filtering.
-    if (isMastered(p)) {
-      mastered += 1
-      continue
-    }
-
-    if (p.nextReviewAt >= threshold) {
-      mastered += 1
-      continue
-    }
-
-    const stability = (p.card as { stability?: number } | undefined)?.stability
-    if (typeof stability === 'number' && stability >= 7) {
-      mastered += 1
-    }
+    if (getQuestionStatus(q, dataset, progressById, today) === 'mastered') mastered += 1
   }
   return mastered
 }

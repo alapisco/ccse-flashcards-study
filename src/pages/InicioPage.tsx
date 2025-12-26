@@ -3,10 +3,10 @@ import { useDataset } from '../data/datasetContext'
 import { useAppStore } from '../store/useAppStore'
 import { todayLocal } from '../srs/date'
 import { Button } from '../ui/Button'
-import { isWeak } from '../domain/weak'
 import { isDue } from '../domain/status'
 import { Link, useNavigate } from 'react-router-dom'
 import { computeLevel } from '../domain/level'
+import { computeMasteredCount } from '../domain/level'
 import { ConfirmSheet } from '../ui/ConfirmSheet'
 import { useOverlayEffects } from '../ui/useOverlayEffects'
 import { ModalPortal } from '../ui/ModalPortal'
@@ -64,14 +64,12 @@ export function InicioPage() {
     return p ? isDue(p.nextReviewAt, today, p.lastSeenAt) : false
   }).length
 
-  const weakCount = dataset.questions.filter((q) => {
-    const p = progressById[q.id]
-    // Include “fallé/lo adiviné” even if the item is also due today.
-    // Users expect this count to update right after a mistake.
-    return p ? isWeak(p, today) : false
-  }).length
-
   const newCount = dataset.questions.filter((q) => !progressById[q.id]).length
+
+  const mastered = computeMasteredCount({ dataset, progressById, today })
+
+  const seenPct = total === 0 ? 0 : Math.max(0, Math.min(1, seen / total))
+  const masteredPct = total === 0 ? 0 : Math.max(0, Math.min(1, mastered / total))
 
   const level = computeLevel({ dataset, progressById, today })
 
@@ -91,26 +89,37 @@ export function InicioPage() {
       </div>
 
       <div className="rounded-2xl bg-[var(--surface)] p-4">
-        <div className="text-sm font-semibold">Tus preguntas</div>
+        <div className="text-sm font-semibold">Preguntas</div>
+
         <div className="mt-2 flex flex-wrap gap-2 text-sm">
-          <Chip label="Para repasar" value={dueCount} />
-          <Chip label="Para reforzar" value={weakCount} />
-          <Chip label="Nuevas" value={newCount} />
+          <Chip label="Ya vistas" value={`${seen} de ${total}`} />
+          <Chip label="Por ver" value={newCount} />
         </div>
 
-        <div className="mt-3 rounded-2xl bg-white px-3 py-3" aria-label={`Avance: ${seen} de ${total} vistas`}>
-          <div className="flex items-baseline justify-between">
-            <div className="text-xs text-[var(--muted)]">Avance</div>
-            <div className="text-sm font-semibold">
-              {seen}/{total}
-            </div>
-          </div>
-          <div className="mt-2 h-2 w-full rounded-full bg-[var(--surface)]">
-            <div
-              className="h-2 rounded-full bg-[var(--ic-accent)]"
-              style={{ width: `${total === 0 ? 0 : Math.round((seen / total) * 100)}%` }}
-            />
-          </div>
+        <div className="mt-2 flex items-center justify-between text-xs text-[var(--muted)]" aria-hidden="true">
+          <span>Cobertura</span>
+          <span>{Math.round(seenPct * 100)}%</span>
+        </div>
+        <div className="mt-1 h-2 w-full rounded-full bg-white" aria-label={`Ya vistas: ${seen} de ${total}.`}>
+          <div className="h-2 rounded-full bg-[var(--muted)]" style={{ width: `${Math.round(seenPct * 100)}%` }} />
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-[var(--surface)] p-4">
+        <div className="text-sm font-semibold">Aprendizaje</div>
+
+        <div className="mt-2 flex flex-wrap gap-2 text-sm">
+          <Chip label="Bien aprendidas" value={mastered} />
+          <Chip label="Para repasar" value={dueCount} />
+          <Chip label="Por ver" value={newCount} />
+        </div>
+
+        <div className="mt-2 flex items-center justify-between text-xs text-[var(--muted)]" aria-hidden="true">
+          <span>Dominio</span>
+          <span>{Math.round(masteredPct * 100)}%</span>
+        </div>
+        <div className="mt-1 h-2 w-full rounded-full bg-white" aria-label={`Bien aprendidas: ${mastered} de ${total}.`}>
+          <div className="h-2 rounded-full bg-[var(--muted)]" style={{ width: `${Math.round(masteredPct * 100)}%` }} />
         </div>
       </div>
 
@@ -153,21 +162,34 @@ export function InicioPage() {
 
               <div className="mt-3 space-y-3">
                 <div className="text-sm text-[var(--muted)]">
-                  <div className="text-[var(--text)]">Tu nivel indica lo preparada/o que estás para el CCSE.</div>
+                  <div className="text-[var(--text)]">Tu nivel estima tu preparación para el CCSE.</div>
                 </div>
 
                 <div className="text-sm text-[var(--muted)]">
-                  <div className="text-[var(--text)]">Sube cuando:</div>
-                  <div className="mt-2 space-y-1">
-                    <div>• Ves preguntas nuevas</div>
-                    <div>• Las recuerdas con facilidad (bien aprendidas)</div>
-                    <div>• Estudias con regularidad</div>
+                  <div className="text-[var(--text)]">Se calcula con dos métricas:</div>
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <div className="font-semibold text-[var(--text)]">Cobertura</div>
+                      <div>Preguntas vistas / total</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-[var(--text)]">Dominio</div>
+                      <div>Bien aprendidas / total (el mismo estado que ves en “Preguntas → Bien aprendidas”)</div>
+                    </div>
                   </div>
                 </div>
 
                 <div className="text-sm text-[var(--muted)]">
-                  Si haces el estudio inteligente, la app ajusta los repasos por ti.
+                  <div className="text-[var(--text)]">Umbrales del nivel</div>
+                  <div className="mt-2 space-y-1">
+                    <div>• Principiante: cobertura &lt; 15%</div>
+                    <div>• Intermedio: dominio &lt; 35%</div>
+                    <div>• Avanzado: dominio &lt; 70%</div>
+                    <div>• Listo: dominio ≥ 70%</div>
+                  </div>
                 </div>
+
+                <div className="text-sm text-[var(--muted)]">El estudio inteligente prioriza repasos y refuerzo para mejorar tu dominio.</div>
 
                 <div className="text-xs text-[var(--muted)]">No necesitas configurar nada. Solo estudia.</div>
               </div>
@@ -197,7 +219,7 @@ export function InicioPage() {
   )
 }
 
-function Chip(props: { label: string; value: number }) {
+function Chip(props: { label: string; value: React.ReactNode }) {
   return (
     <span className="rounded-2xl bg-white px-3 py-2">
       <div className="text-xs text-[var(--muted)]">{props.label}</div>

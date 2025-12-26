@@ -25,8 +25,9 @@ export function BancoPage() {
   const [revealById, setRevealById] = useState<Record<string, boolean>>({})
   const [pickTareaOpen, setPickTareaOpen] = useState(false)
   const [pickStatusOpen, setPickStatusOpen] = useState(false)
+  const [showStatusHelp, setShowStatusHelp] = useState(false)
 
-  useOverlayEffects(pickTareaOpen || pickStatusOpen)
+  useOverlayEffects(pickTareaOpen || pickStatusOpen || showStatusHelp)
 
   const tareaLabel = tarea === 'all' ? 'Todas las tareas' : labelFor(tarea)
   const statusLabel = status === 'all' ? 'Todos los estados' : labelForStatus(status)
@@ -99,6 +100,16 @@ export function BancoPage() {
           >
             <span className="min-w-0 flex-1 truncate">{statusLabel}</span>
             <span className="shrink-0 text-xs text-[var(--muted)]">▾</span>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            className="text-xs text-[var(--muted)] underline"
+            onClick={() => setShowStatusHelp(true)}
+          >
+            ¿Qué significan los estados?
           </button>
         </div>
       </div>
@@ -294,6 +305,59 @@ export function BancoPage() {
                     {opt.label}
                   </button>
                 ))}
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      ) : null}
+
+      {showStatusHelp ? (
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999]">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/40"
+              aria-label="Cerrar"
+              onClick={() => setShowStatusHelp(false)}
+            />
+            <div
+              className="absolute bottom-0 left-0 right-0 mx-auto max-w-md rounded-t-2xl bg-[var(--bg)] p-4"
+              role="dialog"
+              aria-modal="true"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold">Estados de las preguntas</div>
+                <button
+                  type="button"
+                  className="text-sm text-[var(--ic-accent)]"
+                  onClick={() => setShowStatusHelp(false)}
+                >
+                  Entendido
+                </button>
+              </div>
+
+              <div className="mt-3 space-y-3 text-sm text-[var(--muted)]">
+                <div>
+                  <div className="font-semibold text-[var(--text)]">Nueva</div>
+                  <div>Aún no la has practicado.</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-[var(--text)]">Te toca repasar</div>
+                  <div>Está programada para repasar hoy (o estaba pendiente de días anteriores).</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-[var(--text)]">En las que fallé</div>
+                  <div>Has fallado recientemente, la has marcado como débil, o el sistema detecta que necesita refuerzo.</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-[var(--text)]">Aprendiendo</div>
+                  <div>Ya la has visto, pero todavía no está lo bastante consolidada como “bien aprendida”.</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-[var(--text)]">Bien aprendida</div>
+                  <div>La has respondido bien de forma consistente y ya no necesita repasos tan frecuentes.</div>
+                </div>
               </div>
             </div>
           </div>

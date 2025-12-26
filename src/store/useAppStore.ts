@@ -219,7 +219,7 @@ export const useAppStore = create<AppState>()(
           intelligent: {
             ...state,
             currentId: nextId,
-            recentIds: nextId ? [...state.recentIds, nextId].slice(-20) : state.recentIds,
+            recentIds: nextId ? [...state.recentIds, nextId].slice(-50) : state.recentIds,
           },
         })
       },
