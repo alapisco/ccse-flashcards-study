@@ -10,8 +10,14 @@ import { TestDatasetProvider } from '../fixtures/TestDatasetProvider'
 import { makeDatasetWithMinimumSimulacro } from '../fixtures/makeDataset'
 
 function TestRoutes() {
+  const dataset = makeDatasetWithMinimumSimulacro()
+
+  // Inject a word with tilde to validate diacritic-insensitive search.
+  const q2001 = dataset.questions.find((q) => q.id === '2001')
+  if (q2001) q2001.question = 'Río Júcar: ejemplo para buscar sin tildes'
+
   return (
-    <TestDatasetProvider dataset={makeDatasetWithMinimumSimulacro()}>
+    <TestDatasetProvider dataset={dataset}>
       <MemoryRouter initialEntries={['/banco']}>
         <Routes>
           <Route element={<AppShell />}>
@@ -46,6 +52,15 @@ describe('UI: banco', () => {
     // can also search within answer options (not only question text)
     await user.clear(input)
     await user.type(input, 'Verdadero')
+    expect(await screen.findByText(/2001/)).toBeInTheDocument()
+
+    // ignore tildes and case while searching
+    await user.clear(input)
+    await user.type(input, 'jucar')
+    expect(await screen.findByText(/2001/)).toBeInTheDocument()
+
+    await user.clear(input)
+    await user.type(input, 'Jucar')
     expect(await screen.findByText(/2001/)).toBeInTheDocument()
   })
 })

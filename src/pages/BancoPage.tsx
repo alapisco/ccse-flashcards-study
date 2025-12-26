@@ -33,18 +33,23 @@ export function BancoPage() {
   const statusLabel = status === 'all' ? 'Todos los estados' : labelForStatus(status)
 
   const stripOptionPrefix = (text: string) => text.replace(/^\s*[a-d]\s*[\)\.:]\s*/i, '').trim()
+  const normalizeForSearch = (text: string) =>
+    text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
 
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = normalizeForSearch(query.trim())
     const questions = dataset?.questions ?? []
     return questions
       .filter((item) => {
         if (tarea !== 'all' && item.tareaId !== tarea) return false
 
         if (q) {
-          const matchesId = item.id.toLowerCase().includes(q)
+          const matchesId = normalizeForSearch(item.id).includes(q)
           const optionsText = item.options.map((o) => stripOptionPrefix(o.text)).join(' ')
-          const matchesText = `${item.question} ${optionsText}`.toLowerCase().includes(q)
+          const matchesText = normalizeForSearch(`${item.question} ${optionsText}`).includes(q)
           if (!matchesId && !matchesText) return false
         }
 
