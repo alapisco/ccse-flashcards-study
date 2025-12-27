@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDataset } from '../data/datasetContext'
 import { useAppStore } from '../store/useAppStore'
@@ -19,6 +19,21 @@ export function SessionRunnerPage() {
   const [chosen, setChosen] = useState<string | null>(null)
   const [wasCorrect, setWasCorrect] = useState<boolean | null>(null)
   const [confidence, setConfidence] = useState<'knew' | 'guessed' | null>(null)
+
+  const nextAnchorRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (phase !== 'feedback') return
+    if (wasCorrect !== true) return
+
+    const id = window.requestAnimationFrame(() => {
+      nextAnchorRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' })
+    })
+
+    return () => {
+      window.cancelAnimationFrame(id)
+    }
+  }, [phase, wasCorrect])
 
   const currentId = session?.ids[session.currentIndex] ?? null
   const q = useMemo(
@@ -152,6 +167,7 @@ export function SessionRunnerPage() {
             </div>
           ) : null}
 
+          <div ref={nextAnchorRef} />
           <Button variant="primary" onClick={onNext} disabled={wasCorrect === true && !confidence}>
             Siguiente
           </Button>

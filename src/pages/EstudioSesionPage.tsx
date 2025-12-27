@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDataset } from '../data/datasetContext'
 import { useAppStore } from '../store/useAppStore'
@@ -29,12 +29,27 @@ export function EstudioSesionPage() {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [confirmFinish, setConfirmFinish] = useState(false)
 
+  const nextAnchorRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
     if (!dataset) return
     if (summary) return
     if (intelligent.active) return
     startIntelligent({ dataset, constraint: { kind: 'all' } })
   }, [dataset, intelligent.active, startIntelligent, summary])
+
+  useEffect(() => {
+    if (phase !== 'feedback') return
+    if (wasCorrect !== true) return
+
+    const id = window.requestAnimationFrame(() => {
+      nextAnchorRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' })
+    })
+
+    return () => {
+      window.cancelAnimationFrame(id)
+    }
+  }, [phase, wasCorrect])
 
   const currentId = intelligent.currentId
   const q = useMemo(
@@ -208,6 +223,7 @@ export function EstudioSesionPage() {
               </div>
             ) : null}
 
+            <div ref={nextAnchorRef} />
             <Button variant="primary" onClick={onNext} disabled={wasCorrect === true && !confidence}>
               Siguiente
             </Button>
