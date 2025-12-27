@@ -11,10 +11,12 @@ import { ConfirmSheet } from '../ui/ConfirmSheet'
 import { useOverlayEffects } from '../ui/useOverlayEffects'
 import { ModalPortal } from '../ui/ModalPortal'
 import type { IntelligentConstraint } from '../study/getNextIntelligentQuestion'
+import { useSession } from '../session/SessionProvider'
 
 export function InicioPage() {
   const navigate = useNavigate()
   const { dataset } = useDataset()
+  const { user, authLoading, signInWithGoogle, signOut } = useSession()
   const progressById = useAppStore((s) => s.progressById)
   const intelligent = useAppStore((s) => s.intelligent)
   const startIntelligent = useAppStore((s) => s.startIntelligent)
@@ -77,6 +79,47 @@ export function InicioPage() {
 
   return (
     <div className="space-y-4">
+      {!authLoading && user ? (
+        <div className="rounded-2xl bg-[var(--surface)] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs text-[var(--muted)]">
+              Sesión iniciada como <span className="font-semibold text-[var(--text)]">{user.email ?? 'usuario'}</span>.
+            </div>
+            <button
+              type="button"
+              className="text-xs font-semibold text-[var(--ic-accent)] underline"
+              onClick={() => {
+                void signOut()
+              }}
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {!authLoading && !user ? (
+        <div className="rounded-2xl bg-[var(--surface)] p-4">
+          <div className="text-sm font-semibold">Sesión no iniciada</div>
+          <div className="mt-1 text-xs text-[var(--muted)]">
+            Para guardar el progreso automáticamente entre dispositivos, inicia sesión con Google.
+          </div>
+          <div className="mt-3">
+            <button
+              type="button"
+              className="text-sm font-semibold text-[var(--ic-accent)] underline"
+              onClick={() => {
+                void signInWithGoogle().then(() => {
+                  navigate('/', { replace: true })
+                })
+              }}
+            >
+              Iniciar sesión con Google
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="rounded-2xl bg-[var(--surface)] p-4">
         <div className="flex items-center justify-between">
           <div className="text-sm font-semibold">Tu nivel</div>

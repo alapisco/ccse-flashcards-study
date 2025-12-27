@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { useAppStore } from './store/useAppStore'
+import { SessionProvider } from './session/SessionProvider'
 
 function syncThemeColorToBg() {
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
@@ -25,6 +26,8 @@ if (import.meta.env.DEV) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <SessionProvider>
+      <App />
+    </SessionProvider>
   </StrictMode>,
 )

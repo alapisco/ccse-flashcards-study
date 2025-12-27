@@ -46,6 +46,7 @@ export type SimulacroResult = {
 export type AppState = {
   settings: SettingsState
   progressById: ProgressById
+  lastUpdatedAt: string
   activeSession: ActiveSession | null
   simulacroHistory: SimulacroResult[]
 
@@ -95,6 +96,10 @@ export type AppState = {
 
   exportPayload: () => unknown
   importPayload: (payload: unknown) => { ok: true } | { ok: false; reason: string }
+}
+
+function nowIso() {
+  return new Date().toISOString()
 }
 
 const DEFAULT_SETTINGS: SettingsState = {
@@ -156,13 +161,16 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       settings: DEFAULT_SETTINGS,
       progressById: {},
+      lastUpdatedAt: nowIso(),
       activeSession: null,
       simulacroHistory: [],
       intelligent: DEFAULT_INTELLIGENT,
 
-      setSettings: (partial) => set((s) => ({ settings: { ...s.settings, ...partial } })),
+      setSettings: (partial) =>
+        set((s) => ({ settings: { ...s.settings, ...partial }, lastUpdatedAt: nowIso() })),
 
-      resetProgress: () => set({ progressById: {}, activeSession: null, intelligent: DEFAULT_INTELLIGENT }),
+      resetProgress: () =>
+        set({ progressById: {}, activeSession: null, intelligent: DEFAULT_INTELLIGENT, lastUpdatedAt: nowIso() }),
 
       startIntelligent: ({ dataset, constraint, priorityIds, today }) => {
         const day = today ?? todayLocal()
@@ -235,6 +243,7 @@ export const useAppStore = create<AppState>()(
               ...s.progressById,
               [id]: { ...previous, manualWeak: !previous.manualWeak },
             },
+            lastUpdatedAt: nowIso(),
           }
         }),
 
@@ -272,11 +281,15 @@ export const useAppStore = create<AppState>()(
 
           const session = s.activeSession
           if (!session) {
-            return { progressById: { ...s.progressById, [questionId]: next } }
+            return {
+              progressById: { ...s.progressById, [questionId]: next },
+              lastUpdatedAt: nowIso(),
+            }
           }
 
           return {
             progressById: { ...s.progressById, [questionId]: next },
+            lastUpdatedAt: nowIso(),
             activeSession: {
               ...session,
               correctById: { ...session.correctById, [questionId]: correct },
@@ -342,6 +355,7 @@ export const useAppStore = create<AppState>()(
           schemaVersion: 1,
           datasetVersion: 'ccse-2-26',
           createdAt: new Date().toISOString(),
+          lastUpdatedAt: state.lastUpdatedAt,
           settings: state.settings,
           progressById: state.progressById,
         }
@@ -363,10 +377,18 @@ export const useAppStore = create<AppState>()(
             ? (p.settings as Partial<SettingsState>)
             : DEFAULT_SETTINGS
 
+        const lastUpdatedAt =
+          typeof p.lastUpdatedAt === 'string'
+            ? p.lastUpdatedAt
+            : typeof p.createdAt === 'string'
+              ? p.createdAt
+              : nowIso()
+
         set({
           settings: { ...DEFAULT_SETTINGS, ...settings },
           progressById: progressById as ProgressById,
           activeSession: null,
+          lastUpdatedAt,
         })
 
         return { ok: true }
@@ -374,7 +396,11 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'ccse-flashcards-v1',
-      partialize: (state) => ({ settings: state.settings, progressById: state.progressById }),
+      partialize: (state) => ({
+        settings: state.settings,
+        progressById: state.progressById,
+        lastUpdatedAt: state.lastUpdatedAt,
+      }),
     },
   ),
 )

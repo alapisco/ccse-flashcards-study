@@ -2,8 +2,22 @@ import { useRef, useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { Button } from '../ui/Button'
 import { ConfirmSheet } from '../ui/ConfirmSheet'
+import { useSession } from '../session/SessionProvider'
 
 export function AjustesPage() {
+  const {
+    user,
+    authLoading,
+    systemLoading,
+    atCapacity,
+    registrationEnabled,
+    statusMessage,
+    errorMessage,
+    signInWithGoogle,
+    signOut,
+    syncNow,
+  } = useSession()
+
   const exportPayload = useAppStore((s) => s.exportPayload)
   const importPayload = useAppStore((s) => s.importPayload)
   const resetProgress = useAppStore((s) => s.resetProgress)
@@ -44,40 +58,134 @@ export function AjustesPage() {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-[var(--surface)] p-4">
-        <div className="text-sm font-semibold">Mi progreso</div>
-        <div className="mt-1 text-xs text-[var(--muted)]">Exporta, importa o reinicia tu progreso.</div>
+        <div className="text-sm font-semibold">Cuenta y nube</div>
+        <div className="mt-1 text-xs text-[var(--muted)]">
+          Inicia sesión para guardar tu progreso automáticamente en la nube y recuperarlo en otros dispositivos.
+        </div>
 
         <div className="mt-4 space-y-3">
           <div className="rounded-2xl bg-white p-4">
-            <div className="text-sm font-semibold">Exportar</div>
-            <div className="mt-1 text-xs text-[var(--muted)]">Descarga un archivo con tu progreso actual.</div>
-            <div className="mt-3">
-              <Button variant="primary" onClick={onExport}>
-                Exportar progreso
-              </Button>
+            <div className="text-sm font-semibold">Sesión</div>
+            <div className="mt-1 text-xs text-[var(--muted)]">
+              {authLoading ? (
+                'Comprobando sesión…'
+              ) : user ? (
+                <>Conectado como {user.email ?? user.displayName ?? 'usuario'}.</>
+              ) : (
+                'No has iniciado sesión.'
+              )}
+            </div>
+
+            {!registrationEnabled ? (
+              <div className="mt-2 text-xs text-[var(--muted)]">
+                Registro deshabilitado: solo usuarios existentes.
+              </div>
+            ) : null}
+
+            {systemLoading ? (
+              <div className="mt-2 text-xs text-[var(--muted)]">Comprobando servicio…</div>
+            ) : null}
+
+            {atCapacity ? (
+              <div className="mt-2 text-xs text-[var(--muted)]">
+                Servicio en capacidad. Puedes iniciar sesión y descargar tu copia, pero la sincronización a la nube
+                está deshabilitada.
+              </div>
+            ) : null}
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {!user ? (
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    void signInWithGoogle()
+                  }}
+                  disabled={systemLoading}
+                >
+                  Iniciar sesión con Google
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    void signOut()
+                  }}
+                >
+                  Cerrar sesión
+                </Button>
+              )}
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white p-4">
-            <div className="text-sm font-semibold">Importar</div>
-            <div className="mt-1 text-xs text-[var(--muted)]">Carga un archivo exportado anteriormente (sobrescribe tu progreso).</div>
-            <div className="mt-3">
-              <Button variant="secondary" onClick={() => fileInput.current?.click()}>
-                Importar progreso
-              </Button>
-            </div>
-          </div>
+          {user ? (
+            <div className="rounded-2xl bg-white p-4">
+              <div className="text-sm font-semibold">Sincronización</div>
+              <div className="mt-1 text-xs text-[var(--muted)]">
+                Al estar conectado, tu progreso se guarda automáticamente en la nube y se sincroniza entre dispositivos.
+              </div>
 
-          <input
-            ref={fileInput}
-            type="file"
-            accept="application/json"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0]
-              if (f) void onImport(f)
-            }}
-          />
+              {!atCapacity ? (
+                <div className="mt-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      void syncNow()
+                    }}
+                  >
+                    Sincronizar ahora
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-[var(--surface)] p-4">
+        <div className="text-sm font-semibold">Mi progreso</div>
+        <div className="mt-1 text-xs text-[var(--muted)]">
+          {user
+            ? 'Tu progreso se sincroniza automáticamente con la nube. Puedes reiniciarlo en este dispositivo.'
+            : 'Exporta, importa o reinicia tu progreso.'}
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {!user ? (
+            <>
+              <div className="rounded-2xl bg-white p-4">
+                <div className="text-sm font-semibold">Exportar</div>
+                <div className="mt-1 text-xs text-[var(--muted)]">Descarga un archivo con tu progreso actual.</div>
+                <div className="mt-3">
+                  <Button variant="primary" onClick={onExport}>
+                    Exportar progreso
+                  </Button>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-white p-4">
+                <div className="text-sm font-semibold">Importar</div>
+                <div className="mt-1 text-xs text-[var(--muted)]">
+                  Carga un archivo exportado anteriormente (sobrescribe tu progreso).
+                </div>
+                <div className="mt-3">
+                  <Button variant="secondary" onClick={() => fileInput.current?.click()}>
+                    Importar progreso
+                  </Button>
+                </div>
+              </div>
+
+              <input
+                ref={fileInput}
+                type="file"
+                accept="application/json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  if (f) void onImport(f)
+                }}
+              />
+            </>
+          ) : null}
 
           <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5">
             <div className="text-sm font-semibold text-[var(--ic-accent)]">Reiniciar</div>
@@ -91,6 +199,8 @@ export function AjustesPage() {
         </div>
       </div>
 
+      {errorMessage ? <div className="rounded-2xl bg-[var(--surface)] p-4 text-sm">{errorMessage}</div> : null}
+      {statusMessage ? <div className="rounded-2xl bg-[var(--surface)] p-4 text-sm">{statusMessage}</div> : null}
       {message ? <div className="rounded-2xl bg-[var(--surface)] p-4 text-sm">{message}</div> : null}
 
       <ConfirmSheet
@@ -105,6 +215,11 @@ export function AjustesPage() {
           setConfirmReset(false)
           resetProgress()
           setMessage('Progreso reiniciado.')
+
+          // If logged in, push the empty state to cloud so all devices reset consistently.
+          if (user) {
+            void syncNow()
+          }
         }}
       />
     </div>
